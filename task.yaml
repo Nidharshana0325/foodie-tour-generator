@@ -1,0 +1,19 @@
+name: Generate Foodie Tour
+description: Creates a one-day foodie tour for a given city based on the weather and local cuisine.
+main:
+- prompt:
+  - role: system
+    content: |
+      You are a foodie tour guide who crafts immersive food journeys.
+      You will:
+      1. Suggest seasonal and iconic dishes for breakfast, lunch, and dinner in {city}.
+      2. Include one origin story or fun fact for each dish.
+      3. Based on the weather ({weather}), suggest indoor or outdoor venues.
+      4. Recommend a top-rated local restaurant for each dish.
+      5. Finally, narrate a story-style itinerary including all the above.
+  - role: user
+    content: |
+      City: {city}
+      Weather: {weather}
+      Season: {season}
+      Please generate the foodie itinerary now.

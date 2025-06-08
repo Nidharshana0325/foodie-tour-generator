@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foodie Tour Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-image: url('https://www.transparenttextures.com/patterns/food.png');
+            background-color: #f9e8d9;
+            font-family: 'Poppins', sans-serif;
+        }
+        h1, h2, h3, h4, h5 {
+            font-family: 'Playfair Display', serif;
+        }
+        .header-bg {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+        .card-shadow {
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        .meal-icon::before {
+            content: '🍽️';
+            margin-right: 8px;
+        }
+        .transport-icon::before {
+            content: '🚗';
+            margin-right: 8px;
+        }
+        .budget-icon::before {
+            content: '💰';
+            margin-right: 8px;
+        }
+        .tips-icon::before {
+            content: '💡';
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header-bg text-white py-12 shadow-lg">
+        <div class="container mx-auto text-center">
+            <h1 class="text-5xl font-bold mb-2">Foodie Tour Generator</h1>
+            <p class="text-xl">Embark on a Culinary Journey with Transport & Budget 🍽️✨</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto py-12 px-4">
+        <!-- Input Form -->
+        <section class="bg-white rounded-lg card-shadow p-8 mb-10">
+            <h2 class="text-3xl font-semibold mb-6 text-gray-800">Plan Your Foodie Adventure</h2>
+            <div class="space-y-6">
+                <div>
+                    <label for="cities" class="block text-gray-700 font-medium mb-2">Enter Cities (comma-separated, e.g., Delhi, Tokyo):</label>
+                    <input type="text" id="cities" placeholder="Delhi, Tokyo, Rome" class="w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500">
+                </div>
+                <div>
+                    <label for="budget" class="block text-gray-700 font-medium mb-2">Daily Food Budget (INR, default: 1000):</label>
+                    <input type="number" id="budget" placeholder="1000" class="w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500">
+                </div>
+                <button id="generateBtn" class="w-full bg-amber-600 text-white py-4 rounded-lg hover:bg-amber-700 transition duration-300 text-lg font-semibold">Generate Foodie Tour</button>
+            </div>
+        </section>
+
+        <!-- Results Section -->
+        <section id="results" class="hidden">
+            <h2 class="text-3xl font-semibold mb-6 text-gray-800 text-center">Your Foodie Tour Itinerary</h2>
+            <div id="loading" class="flex justify-center items-center mb-6">
+                <svg class="animate-spin h-10 w-10 text-amber-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span class="ml-4 text-gray-600 text-lg">Crafting your foodie journey...</span>
+            </div>
+            <div id="itinerary" class="space-y-8"></div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-8">
+        <div class="container mx-auto text-center">
+            <p class="text-lg">Thank you for using the Foodie Tour Generator! Enjoy your culinary adventures! 🍴✨</p>
+            <p class="mt-2 text-sm">© 2025 Foodie Tour Generator. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Function to parse and format the itinerary as HTML
+        function formatItinerary(data) {
+            const { city, budget, weather, season, itinerary } = data;
+
+            // Log for debugging
+            console.log(`Itinerary for ${city}:`, itinerary);
+            console.log(`Type of itinerary:`, typeof itinerary);
+
+            // Ensure itinerary is a string
+            let itineraryText = String(itinerary);
+
+            // Check if the itinerary indicates a failure
+            if (itineraryText.includes("Task failed") || itineraryText.includes("Error during") || itineraryText.includes("Could not generate")) {
+                return `
+                    <div class="bg-white rounded-lg card-shadow p-8">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">Foodie Tour for ${city} (Budget: ₹${budget})</h3>
+                        <p class="text-gray-600 mb-2"><span class="font-medium">Weather in ${city}:</span> ${weather}</p>
+                        <p class="text-gray-600 mb-6"><span class="font-medium">Season:</span> ${season}</p>
+                        <p class="text-red-600">${itineraryText}</p>
+                    </div>
+                `;
+            }
+
+            // Split the itinerary into lines for parsing
+            const lines = itineraryText.split('\n').filter(line => line.trim() !== '');
+            let html = `
+                <div class="bg-white rounded-lg card-shadow p-8">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Foodie Tour for ${city} (Budget: ₹${budget})</h3>
+                    <p class="text-gray-600 mb-2"><span class="font-medium">Weather in ${city}:</span> ${weather}</p>
+                    <p class="text-gray-600 mb-6"><span class="font-medium">Season:</span> ${season}</p>
+            `;
+
+            let currentSection = '';
+            let mealDetails = [];
+            let tips = [];
+            let monsoonTips = [];
+            let mealsOrder = [];
+            let mealsData = {};
+
+            lines.forEach((line, index) => {
+                // Remove leading/trailing whitespace
+                line = line.trim();
+
+                // Skip the title line since we already have it
+                if (line.includes(`Food Journey Through ${city}`) || line.includes(`Foodie Tour for ${city}`)) return;
+
+                // Introductory paragraphs
+                if ((line.startsWith('Dear Food Explorer,') || line.includes("navigate through the city's culinary treasures")) && currentSection === '') {
+                    html += `
+                        <p class="text-gray-600 mb-4">${line}</p>
+                    `;
+                    return;
+                }
+
+                // Detect meal sections (e.g., BREAKFAST, LUNCH, DINNER)
+                if (line.match(/(🌤️|🌅|🍱|🌙|\*\*)\s*(BREAKFAST|LUNCH|DINNER)/i) || line.match(/(BREAKFAST|LUNCH|DINNER)/i)) {
+                    if (currentSection === 'meal' && mealDetails.length > 0) {
+                        mealsData[mealDetails[0].content.toLowerCase()] = mealDetails;
+                    }
+                    currentSection = 'meal';
+                    mealDetails = [];
+                    let mealType = line.match(/(BREAKFAST|LUNCH|DINNER)/i)[0];
+                    mealsOrder.push(mealType.toLowerCase());
+                    mealDetails.push({ type: 'header', content: mealType });
+                }
+                // Detect key-value pairs in meal sections (e.g., Dish:, Where:, Cost:)
+                else if (currentSection === 'meal' && line.match(/^[A-Za-z\s]+:/)) {
+                    const [key, value] = line.split(':').map(part => part.trim());
+                    const normalizedKey = key.toLowerCase().replace(/\s/g, '_');
+                    mealDetails.push({ type: normalizedKey, content: value });
+                }
+                // Detect standalone settings (e.g., Indoor Setting: ✓)
+                else if (currentSection === 'meal' && line.match(/^(Indoor Setting):/i)) {
+                    const [key, value] = line.split(':').map(part => part.trim());
+                    const normalizedKey = key.toLowerCase().replace(/\s/g, '_');
+                    mealDetails.push({ type: normalizedKey, content: value });
+                }
+                // Detect transport sections (with or without underscores)
+                else if (line.match(/^(🚶‍♂️|🚌|\*\*)\s*Transport To_?(lunch|dinner)/i)) {
+                    if (currentSection === 'meal' && mealDetails.length > 0) {
+                        mealsData[mealDetails[0].content.toLowerCase()] = mealDetails;
+                        mealDetails = [];
+                    }
+                    currentSection = 'transport';
+                    const transportText = line.replace(/^(🚶‍♂️|🚌|\*\*)\s*Transport To_?(lunch|dinner)[:\s]*/i, '').trim();
+                    html += `
+                        <p class="text-gray-600 italic mb-4 transport-icon">${transportText}</p>
+                    `;
+                }
+                // Detect travel tips section
+                else if (line.match(/^(📍|\*\*)\s*(Travel Tips):/i)) {
+                    if (currentSection === 'meal' && mealDetails.length > 0) {
+                        mealsData[mealDetails[0].content.toLowerCase()] = mealDetails;
+                        mealDetails = [];
+                    }
+                    currentSection = 'travel_tips';
+                    html += `
+                        <h4 class="text-xl font-semibold text-gray-800 mb-4 tips-icon">Travel Tips</h4>
+                    `;
+                }
+                // Detect monsoon advisory section
+                else if (line.match(/^(🌧️|\*\*)\s*(Monsoon Advisory):/i)) {
+                    if (currentSection === 'meal' && mealDetails.length > 0) {
+                        mealsData[mealDetails[0].content.toLowerCase()] = mealDetails;
+                        mealDetails = [];
+                    }
+                    currentSection = 'monsoon_advisory';
+                    html += `
+                        <h4 class="text-xl font-semibold text-gray-800 mb-4 tips-icon">Monsoon Advisory</h4>
+                    `;
+                }
+                // Tips as list items (for travel tips and monsoon advisory)
+                else if ((currentSection === 'travel_tips' || currentSection === 'monsoon_advisory') && line.startsWith('-')) {
+                    if (currentSection === 'travel_tips') {
+                        tips.push(line.replace('-', '').trim());
+                    } else {
+                        monsoonTips.push(line.replace('-', '').trim());
+                    }
+                }
+                // Monsoon advisory paragraph
+                else if (currentSection === 'monsoon_advisory' && !line.startsWith('-') && !line.match(/^(Bon Appétit|Thank yo)/i)) {
+                    html += `
+                        <p class="text-gray-600 mb-2">${line}</p>
+                    `;
+                }
+                // Detect budget totals (with underscores)
+                else if (line.match(/^(Total Food_cost|Total Transport_cost|Grand Total):/i)) {
+                    if (currentSection === 'meal' && mealDetails.length > 0) {
+                        mealsData[mealDetails[0].content.toLowerCase()] = mealDetails;
+                        mealDetails = [];
+                    }
+                    currentSection = 'budget';
+                    const [key, value] = line.split(':').map(part => part.trim());
+                    const label = key.includes('Food_cost') ? 'Total Food Cost' :
+                                 key.includes('Transport_cost') ? 'Total Transport Cost' : 'Grand Total';
+                    html += `
+                        <p class="text-gray-600 mb-2 budget-icon"><span class="font-medium">${label}:</span> ${value}</p>
+                    `;
+                }
+                // Closing message
+                else if (line.match(/^(Bon Appétit|Thank yo)/i)) {
+                    // Fix typo in "Thank yo" if present
+                    const correctedLine = line.replace('Thank yo', 'Thank you');
+                    html += `
+                        <p class="text-gray-600 mt-4 italic">${correctedLine}</p>
+                    `;
+                }
+                // Fallback for unparsed lines
+                else if (currentSection !== 'travel_tips' && currentSection !== 'monsoon_advisory' && line.length > 0) {
+                    html += `
+                        <p class="text-gray-600">${line}</p>
+                    `;
+                }
+            });
+
+            // Render any remaining meal details
+            if (currentSection === 'meal' && mealDetails.length > 0) {
+                mealsData[mealDetails[0].content.toLowerCase()] = mealDetails;
+            }
+
+            // Render meals in the correct order (Breakfast, Lunch, Dinner)
+            const correctOrder = ['breakfast', 'lunch', 'dinner'];
+            correctOrder.forEach(mealType => {
+                if (mealsData[mealType]) {
+                    html += renderMeal(mealsData[mealType]);
+                }
+            });
+
+            // Render travel tips
+            if (tips.length > 0) {
+                html += `
+                    <ul class="list-disc pl-5 text-gray-600 mt-2">
+                        ${tips.map(tip => `<li>${tip}</li>`).join('')}
+                    </ul>
+                `;
+            }
+
+            // Render monsoon advisory tips
+            if (monsoonTips.length > 0) {
+                html += `
+                    <ul class="list-disc pl-5 text-gray-600 mt-2">
+                        ${monsoonTips.map(tip => `<li>${tip}</li>`).join('')}
+                    </ul>
+                `;
+            }
+
+            html += `</div>`;
+            return html;
+        }
+
+        // Helper function to render a meal section
+        function renderMeal(details) {
+            let html = `<div class="mb-6 border-l-4 border-amber-500 pl-4">`;
+            details.forEach(detail => {
+                if (detail.type === 'header') {
+                    html += `
+                        <h5 class="text-lg font-semibold text-amber-600 meal-icon">${detail.content}</h5>
+                    `;
+                } else {
+                    const label = detail.type.replace('_', ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                    html += `
+                        <p><span class="font-medium">${label}:</span> ${detail.content}</p>
+                    `;
+                }
+            });
+            html += `</div>`;
+            return html;
+        }
+
+        // Handle form submission
+        document.getElementById('generateBtn').addEventListener('click', async () => {
+            const citiesInput = document.getElementById('cities').value;
+            const budgetInput = document.getElementById('budget').value || 1000;
+            const cities = citiesInput.split(',').map(city => city.trim()).filter(city => city);
+
+            if (cities.length === 0) {
+                alert('Please enter at least one city!');
+                return;
+            }
+
+            const resultsSection = document.getElementById('results');
+            const itineraryDiv = document.getElementById('itinerary');
+            const loadingDiv = document.getElementById('loading');
+
+            // Reset and show results section
+            itineraryDiv.innerHTML = '';
+            resultsSection.classList.remove('hidden');
+            loadingDiv.classList.remove('hidden');
+
+            try {
+                // Make API call to the Flask backend
+                const response = await fetch('/api/generate-tour', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        cities: cities,
+                        budget: parseInt(budgetInput)
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to generate tour');
+                }
+
+                // Hide loading spinner
+                loadingDiv.classList.add('hidden');
+
+                // Render the itineraries
+                data.forEach(item => {
+                    const itineraryHTML = formatItinerary(item);
+                    const itineraryElement = document.createElement('div');
+                    itineraryElement.innerHTML = itineraryHTML;
+                    itineraryDiv.appendChild(itineraryElement);
+                });
+
+            } catch (error) {
+                loadingDiv.classList.add('hidden');
+                itineraryDiv.innerHTML = `
+                    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg">
+                        <p class="font-medium">Error:</p>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>
